@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍽️ Restaurant Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #4CAF50;
+            --danger: #f44336;
+            --warning: #ff9800;
+            --light: #f5f5f5;
+            --dark: #333;
+            --border: #ddd;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        /* ==================== LAYOUT ==================== */
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar.hidden {
+            display: none;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 30px;
+            background: var(--light);
+        }
+
+        .main-content.full-width {
+            margin-left: 0;
+        }
+
+        /* ==================== SIDEBAR ==================== */
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-menu li {
+            margin-bottom: 15px;
+        }
+
+        .sidebar-menu a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: rgba(255,255,255,0.2);
+            padding-left: 20px;
+        }
+
+        .user-profile {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            font-size: 12px;
+        }
+
+        .user-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .user-role {
+            opacity: 0.8;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        /* ==================== HEADER ==================== */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .header-subtitle {
+            opacity: 0.9;
+            font-size: 13px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* ==================== AUTHENTICATION ==================== */
+        .auth-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 400px;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-card h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* ==================== BUTTONS ==================== */
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #d32f2f;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .btn-logout {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid white;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        /* ==================== CARDS ==================== */
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .card h2,
+        .card h3 {
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary);
+        }
+
+        .metric-card.success {
+            border-left-color: var(--success);
+        }
+
+        .metric-card.warning {
+            border-left-color: var(--warning);
+        }
+
+        .metric-card.danger {
+            border-left-color: var(--danger);
+        }
+
+        .metric-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #999;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* ==================== TABLES ==================== */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        table thead {
+            background: var(--light);
+            border-bottom: 2px solid var(--border);
+        }
+
+        table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        table tbody tr:hover {
+            background: var(--light);
+        }
+
+        table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* ==================== MODALS ==================== */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close-btn:hover {
+            color: var(--dark);
+        }
+
+        /* ==================== GRID LAYOUTS ==================== */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* ==================== ALERT ==================== */
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid var(--success);
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid var(--danger);
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid var(--warning);
+        }
+
+        /* ==================== TABS ==================== */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #999;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            margin-bottom: -2px;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: slideUp 0.3s ease;
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                padding: 15px;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .sidebar.hidden {
+                display: none;
+            }
+
+            .metric-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            table th, table td {
+                padding: 10px;
+            }
+        }
+
+        /* ==================== UTILITY ==================== */
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid var(--light);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- ==================== LOGIN PAGE ==================== -->
+    <div id="loginPage" class="auth-page">
+        <div class="login-card">
+            <h1>🍽️ Restaurant Management</h1>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter username" required>
+                    <span class="error-message" id="usernameError"></span>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter password" required>
+                    <span class="error-message" id="passwordError"></span>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+                <div class="error-message" id="loginError"></div>
+            </form>
+            <div style="margin-top: 20px; text-align: center; font-size: 12px; color: #999;">
+                <p><strong>Demo Credentials:</strong></p>
+                <p>Username: <strong>admin</strong></p>
+                <p>Password: <strong>admin123</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN APP ==================== -->
+    <div id="appPage" class="container hidden">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo">🍽️ Restaurant</div>
+            <ul class="sidebar-menu">
+                <li><a href="#" onclick="showPage('dashboard')" class="nav-link active">📊 Dashboard</a></li>
+                <li><a href="#" onclick="showPage('products')" class="nav-link">📝 Products</a></li>
+                <li><a href="#" onclick="showPage('categories')" class="nav-link">🏷️ Categories</a></li>
+                <li><a href="#" onclick="showPage('orders')" class="nav-link">📦 Orders</a></li>
+                <li><a href="#" onclick="showPage('customers')" class="nav-link">👥 Customers</a></li>
+                <li><a href="#" onclick="showPage('payments')" class="nav-link">💰 Payments</a></li>
+                <li><a href="#" onclick="showPage('coupons')" class="nav-link">🎫 Coupons</a></li>
+                <li><a href="#" onclick="showPage('reviews')" class="nav-link">⭐ Reviews</a></li>
+                <li><a href="#" onclick="showPage('settings')" class="nav-link">⚙️ Settings</a></li>
+            </ul>
+            <div class="user-profile">
+                <div class="user-name" id="currentUser">Admin User</div>
+                <div class="user-role" id="currentRole">Administrator</div>
+                <button class="btn btn-logout" onclick="handleLogout()">Logout</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Alert Container -->
+            <div id="alertContainer"></div>
+
+            <!-- Dashboard Page -->
+            <div id="dashboardPage" class="page-content">
+                <div class="header">
+                    <div>
+                        <h1>📊 Dashboard</h1>
+                        <div class="header-subtitle">Welcome back! Here's your restaurant overview.</div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="refreshDashboard()">🔄 Refresh</button>
+                    </div>
+                </div>
+
+                <div class="metric-grid">
+                    <div class="metric-card success">
+                        <div class="metric-icon">📦</div>
+                        <div class="metric-label">Total Orders</div>
+                        <div class="metric-value" id="totalOrders">0</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">💰</div>
+                        <div class="metric-label">Total Revenue</div>
+                        <div class="metric-value" id="totalRevenue">$0.00</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">👥</div>
+                        <div class="metric-label">Total Customers</div>
+                        <div class="metric-value" id="totalCustomers">0</div>
+                    </div>
+                    <div class="metric-card warning">
+                        <div class="metric-icon">✅</div>
+                        <div class="metric-label">Completed Payments</div>
+                        <div class="metric-value" id="completedPayments">0</div>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="card">
+                        <h2>📈 Recent Orders</h2>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentOrdersBody">
+                                    <tr><td colspan="4" class="text-center">No orders yet</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Page -->
+            <div id="productsPage" class="page-content hidden">
+                <div class="header">
+                    <div>
+                        <h1>📝 Products</h1>
+                        <div class="header-subtitle">Manage your menu items</div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openProductModal()">➕ Add Product</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th>Price</th>
+                                    <th>Available</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsBody">
+                                <tr><td colspan="5" class="text-center">No products yet</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories Page -->
+            <div id="categoriesPage" class="page-content hidden">
+                <div class="header">
+                    <div>
+                        <h1>🏷️ Categories</h1>
+                        <div class="header-subtitle">Manage food categories</div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openCategoryModal()">➕ Add Category</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoriesBody">
+                                <tr><td colspan="3" class="text-center">No categories yet</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Page -->
+            <div id="ordersPage" class="page-content hidden">
+                <div class="header">
+                    <div>
+                        <h1>📦 Orders</h1>
+                        <div class="header-subtitle">Track customer orders</div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openOrderModal()">➕ New Order</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersBody">
+                                <tr><td colspan="6" class="text-center">No orders yet</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customers Page -->
+            <div id="customersPage" class="page-content hidden">
+                <div class="header">
+                    <div>
+                        <h1>👥 Customers</h1>
+                        <div class="header-subtitle">Manage customer information</div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openCustomerModal()">➕ Add Customer</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Orders</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customersBody">
+                                <tr><td colspan="5" class="text-center">No customers yet</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments Page -->
+            <div id="paymentsPage" class="page-content hidden">
+                <div class="header">
+                    <div>
+                        <h1>💰 Payments</h1>
+                        <div class="header-subtitle">Track payment records</div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openPaymentModal()">➕ Record Payment</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Payment ID</th>
+                                    <th>Order ID</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsBody">
+                                <tr><td colspan="6" class="text-center">No payments yet</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coupons Page -->
+            <div id="couponsPage" class="page-content hidden">
+                <div class="header">
+                    <div>
+                        <h1>🎫 Coupons</h1>
+                        <div class="header-subtitle">Manage discount codes</div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openCouponModal()">➕ Add Coupon</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Discount</th>
+                                    <th>Valid Until</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="couponsBody">
+                                <tr><td colspan="5" class="text-center">No coupons yet</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reviews Page -->
+            <div id="reviewsPage" class="page-content hidden">
+                <div class="header">
+                    <div>
+                        <h1>⭐ Reviews</h1>
+                        <div class="header-subtitle">Customer feedback and ratings</div>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div id="reviewsContainer"></div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settingsPage" class="page-content hidden">
+                <div class="header">
+                    <h1>⚙️ Settings</h1>
+                    <div class="header-subtitle">Restaurant configuration</div>
+                </div>
+
+                <div class="card">
+                    <h2>Restaurant Information</h2>
+                    <form id="settingsForm" onsubmit="saveSettings(event)">
+                        <div class="form-group">
+                            <label for="restaurantName">Restaurant Name</label>
+                            <input type="text" id="restaurantName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="taxRate">Tax Rate (%)</label>
+                            <input type="number" id="taxRate" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="deliveryCharge">Delivery Charge ($)</label>
+                            <input type="number" id="deliveryCharge" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="currency">Currency</label>
+                            <select id="currency" required>
+                                <option value="USD">USD ($)</option>
+                                <option value="EUR">EUR (€)</option>
+                                <option value="GBP">GBP (£)</option>
+                                <option value="INR">INR (₹)</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">💾 Save Settings</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+    
+    <!-- Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add/Edit Product</h2>
+                <button class="close-btn" onclick="closeModal('productModal')">&times;</button>
+            </div>
+            <form id="productForm" onsubmit="saveProduct(event)">
+                <div class="form-group">
+                    <label for="productName">Product Name</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label for="productCategory">Category</label>
+                    <select id="productCategory" required>
+                        <option value="">Select Category</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="productPrice">Price</label>
+                    <input type="number" id="productPrice" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="productDescription">Description</label>
+                    <textarea id="productDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="productAvailable">
+                        <input type="checkbox" id="productAvailable" checked> Available
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Product</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add/Edit Category</h2>
+                <button class="close-btn" onclick="closeModal('categoryModal')">&times;</button>
+            </div>
+            <form id="categoryForm" onsubmit="saveCategory(event)">
+                <div class="form-group">
+                    <label for="categoryName">Category Name</label>
+                    <input type="text" id="categoryName" required>
+                </div>
+                <div class="form-group">
+                    <label for="categoryDescription">Description</label>
+                    <textarea id="categoryDescription" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Category</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Order Modal -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>New Order</h2>
+                <button class="close-btn" onclick="closeModal('orderModal')">&times;</button>
+            </div>
+            <form id="orderForm" onsubmit="saveOrder(event)">
+                <div class="form-group">
+                    <label for="orderCustomer">Customer</label>
+                    <select id="orderCustomer" required>
+                        <option value="">Select Customer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="orderProduct">Product</label>
+                    <select id="orderProduct" required>
+                        <option value="">Select Product</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="orderQuantity">Quantity</label>
+                    <input type="number" id="orderQuantity" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="orderStatus">Status</label>
+                    <select id="orderStatus" required>
+                        <option value="Pending">Pending</option>
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="Preparing">Preparing</option>
+                        <option value="Ready">Ready</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Order</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Customer Modal -->
+    <div id="customerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add/Edit Customer</h2>
+                <button class="close-btn" onclick="closeModal('customerModal')">&times;</button>
+            </div>
+            <form id="customerForm" onsubmit="saveCustomer(event)">
+                <div class="form-group">
+                    <label for="customerName">Name</label>
+                    <input type="text" id="customerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerEmail">Email</label>
+                    <input type="email" id="customerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerPhone">Phone</label>
+                    <input type="tel" id="customerPhone" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerAddress">Address</label>
+                    <textarea id="customerAddress" rows="2"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Customer</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Record Payment</h2>
+                <button class="close-btn" onclick="closeModal('paymentModal')">&times;</button>
+            </div>
+            <form id="paymentForm" onsubmit="savePayment(event)">
+                <div class="form-group">
+                    <label for="paymentOrder">Order ID</label>
+                    <input type="text" id="paymentOrder" required>
+                </div>
+                <div class="form-group">
+                    <label for="paymentAmount">Amount</label>
+                    <input type="number" id="paymentAmount" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="paymentMethod">Payment Method</label>
+                    <select id="paymentMethod" required>
+                        <option value="Card">Card</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Online">Online Transfer</option>
+                        <option value="Mobile">Mobile Payment</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="paymentStatus">Status</label>
+                    <select id="paymentStatus" required>
+                        <option value="Pending">Pending</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Record Payment</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Coupon Modal -->
+    <div id="couponModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Coupon</h2>
+                <button class="close-btn" onclick="closeModal('couponModal')">&times;</button>
+            </div>
+            <form id="couponForm" onsubmit="saveCoupon(event)">
+                <div class="form-group">
+                    <label for="couponCode">Coupon Code</label>
+                    <input type="text" id="couponCode" required>
+                </div>
+                <div class="form-group">
+                    <label for="couponType">Discount Type</label>
+                    <select id="couponType" required>
+                        <option value="Percentage">Percentage</option>
+                        <option value="Fixed">Fixed Amount</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="couponValue">Discount Value</label>
+                    <input type="number" id="couponValue" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="couponExpiry">Expiry Date</label>
+                    <input type="date" id="couponExpiry" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Coupon</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ==================== DATA MANAGEMENT ====================
+        const app = {
+            users: [
+                { username: 'admin', password: 'admin123', role: 'Administrator', email: 'admin@restaurant.com' },
+                { username: 'staff', password: 'staff123', role: 'Staff', email: 'staff@restaurant.com' }
+            ],
+            products: [],
+            categories: [],
+            orders: [],
+            orderItems: [],
+            customers: [],
+            payments: [],
+            coupons: [],
+            reviews: [],
+            settings: {
+                restaurantName: 'My Restaurant',
+                taxRate: 5,
+                deliveryCharge: 5,
+                currency: 'USD'
+            },
+            currentUser: null
+        };
+
+        let editingId = null;
+
+        // ==================== INITIALIZATION ====================
+        function initializeApp() {
+            loadDataFromStorage();
+            if (app.currentUser) {
+                showAppPage();
+            }
+        }
+
+        function loadDataFromStorage() {
+            const stored = localStorage.getItem('restaurantApp');
+            if (stored) {
+                Object.assign(app, JSON.parse(stored));
+            }
+        }
+
+        function saveDataToStorage() {
+            localStorage.setItem('restaurantApp', JSON.stringify(app));
+        }
+
+        // ==================== AUTHENTICATION ====================
+        function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            const user = app.users.find(u => u.username === username && u.password === password);
+            if (user) {
+                app.currentUser = { username: user.username, role: user.role, email: user.email };
+                saveDataToStorage();
+                showAppPage();
+            } else {
+                showAlert('Invalid username or password', 'danger');
+                document.getElementById('loginError').textContent = 'Invalid credentials';
+                document.getElementById('loginError').classList.add('show');
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                app.currentUser = null;
+                saveDataToStorage();
+                document.getElementById('loginPage').classList.remove('hidden');
+                document.getElementById('appPage').classList.add('hidden');
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            }
+        }
+
+        // ==================== PAGE NAVIGATION ====================
+        function showAppPage() {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('appPage').classList.remove('hidden');
+            document.getElementById('currentUser').textContent = app.currentUser.username;
+            document.getElementById('currentRole').textContent = app.currentUser.role;
+            showPage('dashboard');
+        }
+
+        function showPage(pageName) {
+            document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(pageName + 'Page').classList.remove('hidden');
+
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (pageName === 'dashboard') {
+                refreshDashboard();
+            } else if (pageName === 'products') {
+                loadProducts();
+            } else if (pageName === 'categories') {
+                loadCategories();
+            } else if (pageName === 'orders') {
+                loadOrders();
+            } else if (pageName === 'customers') {
+                loadCustomers();
+            } else if (pageName === 'payments') {
+                loadPayments();
+            } else if (pageName === 'coupons') {
+                loadCoupons();
+            } else if (pageName === 'reviews') {
+                loadReviews();
+            } else if (pageName === 'settings') {
+                loadSettings();
+            }
+        }
+
+        // ==================== DASHBOARD ====================
+        function refreshDashboard() {
+            document.getElementById('totalOrders').textContent = app.orders.length;
+            document.getElementById('totalRevenue').textContent = '$' + app.orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0).toFixed(2);
+            document.getElementById('totalCustomers').textContent = app.customers.length;
+            document.getElementById('completedPayments').textContent = app.payments.filter(p => p.status === 'Completed').length;
+
+            const recentOrders = app.orders.slice(-5).reverse();
+            const tbody = document.getElementById('recentOrdersBody');
+            tbody.innerHTML = recentOrders.length > 0 ? recentOrders.map(order => `
+                <tr>
+                    <td>${order.id}</td>
+                    <td>${app.customers.find(c => c.id === order.customerId)?.name || 'Unknown'}</td>
+                    <td>$${(order.totalAmount || 0).toFixed(2)}</td>
+                    <td><span class="badge badge-${order.status === 'Completed' ? 'success' : order.status === 'Pending' ? 'warning' : 'danger'}">${order.status}</span></td>
+                </tr>
+            `).join('') : '<tr><td colspan="4" class="text-center">No orders yet</td></tr>';
+        }
+
+        // ==================== PRODUCTS ====================
+        function loadProducts() {
+            const tbody = document.getElementById('productsBody');
+            tbody.innerHTML = app.products.length > 0 ? app.products.map(product => `
+                <tr>
+                    <td>${product.name}</td>
+                    <td>${product.category}</td>
+                    <td>$${product.price.toFixed(2)}</td>
+                    <td>${product.available ? 'Yes' : 'No'}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-secondary" onclick="editProduct('${product.id}')">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteProduct('${product.id}')">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('') : '<tr><td colspan="5" class="text-center">No products yet</td></tr>';
+
+            loadProductCategories();
+        }
+
+        function loadProductCategories() {
+            const select = document.getElementById('productCategory');
+            select.innerHTML = '<option value="">Select Category</option>' + app.categories.map(cat => 
+                `<option value="${cat.name}">${cat.name}</option>`
+            ).join('');
+        }
+
+        function openProductModal() {
+            editingId = null;
+            document.getElementById('productForm').reset();
+            openModal('productModal');
+            loadProductCategories();
+        }
+
+        function editProduct(id) {
+            const product = app.products.find(p => p.id === id);
+            if (product) {
+                editingId = id;
+                document.getElementById('productName').value = product.name;
+                document.getElementById('productCategory').value = product.category;
+                document.getElementById('productPrice').value = product.price;
+                document.getElementById('productDescription').value = product.description;
+                document.getElementById('productAvailable').checked = product.available;
+                openModal('productModal');
+                loadProductCategories();
+            }
+        }
+
+        function saveProduct(event) {
+            event.preventDefault();
+            const product = {
+                id: editingId || generateId(),
+                name: document.getElementById('productName').value,
+                category: document.getElementById('productCategory').value,
+                price: parseFloat(document.getElementById('productPrice').value),
+                description: document.getElementById('productDescription').value,
+                available: document.getElementById('productAvailable').checked
+            };
+
+            if (editingId) {
+                const index = app.products.findIndex(p => p.id === editingId);
+                app.products[index] = product;
+                showAlert('Product updated successfully', 'success');
+            } else {
+                app.products.push(product);
+                showAlert('Product added successfully', 'success');
+            }
+
+            saveDataToStorage();
+            closeModal('productModal');
+            loadProducts();
+        }
+
+        function deleteProduct(id) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                app.products = app.products.filter(p => p.id !== id);
+                saveDataToStorage();
+                loadProducts();
+                showAlert('Product deleted successfully', 'success');
+            }
+        }
+
+        // ==================== CATEGORIES ====================
+        function loadCategories() {
+            const tbody = document.getElementById('categoriesBody');
+            tbody.innerHTML = app.categories.length > 0 ? app.categories.map(category => `
+                <tr>
+                    <td>${category.name}</td>
+                    <td>${category.description}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-secondary" onclick="editCategory('${category.id}')">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteCategory('${category.id}')">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('') : '<tr><td colspan="3" class="text-center">No categories yet</td></tr>';
+        }
+
+        function openCategoryModal() {
+            editingId = null;
+            document.getElementById('categoryForm').reset();
+            openModal('categoryModal');
+        }
+
+        function editCategory(id) {
+            const category = app.categories.find(c => c.id === id);
+            if (category) {
+                editingId = id;
+                document.getElementById('categoryName').value = category.name;
+                document.getElementById('categoryDescription').value = category.description;
+                openModal('categoryModal');
+            }
+        }
+
+        function saveCategory(event) {
+            event.preventDefault();
+            const category = {
+                id: editingId || generateId(),
+                name: document.getElementById('categoryName').value,
+                description: document.getElementById('categoryDescription').value
+            };
+
+            if (editingId) {
+                const index = app.categories.findIndex(c => c.id === editingId);
+                app.categories[index] = category;
+                showAlert('Category updated successfully', 'success');
+            } else {
+                app.categories.push(category);
+                showAlert('Category added successfully', 'success');
+            }
+
+            saveDataToStorage();
+            closeModal('categoryModal');
+            loadCategories();
+            loadProductCategories();
+        }
+
+        function deleteCategory(id) {
+            if (confirm('Are you sure you want to delete this category?')) {
+                app.categories = app.categories.filter(c => c.id !== id);
+                saveDataToStorage();
+                loadCategories();
+                showAlert('Category deleted successfully', 'success');
+            }
+        }
+
+        // ==================== ORDERS ====================
+        function loadOrders() {
+            const tbody = document.getElementById('ordersBody');
+            tbody.innerHTML = app.orders.length > 0 ? app.orders.map(order => `
+                <tr>
+                    <td>${order.id}</td>
+                    <td>${app.customers.find(c => c.id === order.customerId)?.name || 'Unknown'}</td>
+                    <td>${new Date(order.date).toLocaleDateString()}</td>
+                    <td>$${(order.totalAmount || 0).toFixed(2)}</td>
+                    <td><span class="badge badge-${order.status === 'Completed' ? 'success' : order.status === 'Pending' ? 'warning' : 'danger'}">${order.status}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-secondary" onclick="editOrder('${order.id}')">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteOrder('${order.id}')">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('') : '<tr><td colspan="6" class="text-center">No orders yet</td></tr>';
+
+            loadOrderSelects();
+        }
+
+        function loadOrderSelects() {
+            const customerSelect = document.getElementById('orderCustomer');
+            const productSelect = document.getElementById('orderProduct');
+
+            customerSelect.innerHTML = '<option value="">Select Customer</option>' + app.customers.map(cust => 
+                `<option value="${cust.id}">${cust.name}</option>`
+            ).join('');
+
+            productSelect.innerHTML = '<option value="">Select Product</option>' + app.products.map(prod => 
+                `<option value="${prod.id}">${prod.name} - $${prod.price.toFixed(2)}</option>`
+            ).join('');
+        }
+
+        function openOrderModal() {
+            editingId = null;
+            document.getElementById('orderForm').reset();
+            openModal('orderModal');
+            loadOrderSelects();
+        }
+
+        function editOrder(id) {
+            const order = app.orders.find(o => o.id === id);
+            if (order) {
+                editingId = id;
+                document.getElementById('orderCustomer').value = order.customerId;
+                document.getElementById('orderStatus').value = order.status;
+                openModal('orderModal');
+                loadOrderSelects();
+            }
+        }
+
+        function saveOrder(event) {
+            event.preventDefault();
+            const customerId = document.getElementById('orderCustomer').value;
+            const productId = document.getElementById('orderProduct').value;
+            const quantity = parseInt(document.getElementById('orderQuantity').value);
+            const status = document.getElementById('orderStatus').value;
+
+            const product = app.products.find(p => p.id === productId);
+            const totalAmount = product ? product.price * quantity : 0;
+
+            const order = {
+                id: editingId || 'ORD' + Date.now(),
+                customerId: customerId,
+                date: new Date().toISOString(),
+                totalAmount: totalAmount,
+                status: status,
+                items: [{ productId: productId, quantity: quantity, price: product?.price || 0 }]
+            };
+
+            if (editingId) {
+                const index = app.orders.findIndex(o => o.id === editingId);
+                app.orders[index] = order;
+                showAlert('Order updated successfully', 'success');
+            } else {
+                app.orders.push(order);
+                showAlert('Order created successfully', 'success');
+            }
+
+            saveDataToStorage();
+            closeModal('orderModal');
+            loadOrders();
+            refreshDashboard();
+        }
+
+        function deleteOrder(id) {
+            if (confirm('Are you sure you want to delete this order?')) {
+                app.orders = app.orders.filter(o => o.id !== id);
+                saveDataToStorage();
+                loadOrders();
+                refreshDashboard();
+                showAlert('Order deleted successfully', 'success');
+            }
+        }
+
+        // ==================== CUSTOMERS ====================
+        function loadCustomers() {
+            const tbody = document.getElementById('customersBody');
+            tbody.innerHTML = app.customers.length > 0 ? app.customers.map(customer => `
+                <tr>
+                    <td>${customer.name}</td>
+                    <td>${customer.email}</td>
+                    <td>${customer.phone}</td>
+                    <td>${app.orders.filter(o => o.customerId === customer.id).length}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-secondary" onclick="editCustomer('${customer.id}')">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteCustomer('${customer.id}')">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('') : '<tr><td colspan="5" class="text-center">No customers yet</td></tr>';
+        }
+
+        function openCustomerModal() {
+            editingId = null;
+            document.getElementById('customerForm').reset();
+            openModal('customerModal');
+        }
+
+        function editCustomer(id) {
+            const customer = app.customers.find(c => c.id === id);
+            if (customer) {
+                editingId = id;
+                document.getElementById('customerName').value = customer.name;
+                document.getElementById('customerEmail').value = customer.email;
+                document.getElementById('customerPhone').value = customer.phone;
+                document.getElementById('customerAddress').value = customer.address;
+                openModal('customerModal');
+            }
+        }
+
+        function saveCustomer(event) {
+            event.preventDefault();
+            const customer = {
+                id: editingId || 'CUST' + Date.now(),
+                name: document.getElementById('customerName').value,
+                email: document.getElementById('customerEmail').value,
+                phone: document.getElementById('customerPhone').value,
+                address: document.getElementById('customerAddress').value
+            };
+
+            if (editingId) {
+                const index = app.customers.findIndex(c => c.id === editingId);
+                app.customers[index] = customer;
+                showAlert('Customer updated successfully', 'success');
+            } else {
+                app.customers.push(customer);
+                showAlert('Customer added successfully', 'success');
+            }
+
+            saveDataToStorage();
+            closeModal('customerModal');
+            loadCustomers();
+            loadOrderSelects();
+        }
+
+        function deleteCustomer(id) {
+            if (confirm('Are you sure you want to delete this customer?')) {
+                app.customers = app.customers.filter(c => c.id !== id);
+                saveDataToStorage();
+                loadCustomers();
+                showAlert('Customer deleted successfully', 'success');
+            }
+        }
+
+        // ==================== PAYMENTS ====================
+        function loadPayments() {
+            const tbody = document.getElementById('paymentsBody');
+            tbody.innerHTML = app.payments.length > 0 ? app.payments.map(payment => `
+                <tr>
+                    <td>${payment.id}</td>
+                    <td>${payment.orderId}</td>
+                    <td>$${payment.amount.toFixed(2)}</td>
+                    <td>${payment.method}</td>
+                    <td><span class="badge badge-${payment.status === 'Completed' ? 'success' : 'warning'}">${payment.status}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-secondary" onclick="editPayment('${payment.id}')">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deletePayment('${payment.id}')">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('') : '<tr><td colspan="6" class="text-center">No payments yet</td></tr>';
+        }
+
+        function openPaymentModal() {
+            editingId = null;
+            document.getElementById('paymentForm').reset();
+            openModal('paymentModal');
+        }
+
+        function editPayment(id) {
+            const payment = app.payments.find(p => p.id === id);
+            if (payment) {
+                editingId = id;
+                document.getElementById('paymentOrder').value = payment.orderId;
+                document.getElementById('paymentAmount').value = payment.amount;
+                document.getElementById('paymentMethod').value = payment.method;
+                document.getElementById('paymentStatus').value = payment.status;
+                openModal('paymentModal');
+            }
+        }
+
+        function savePayment(event) {
+            event.preventDefault();
+            const payment = {
+                id: editingId || 'PAY' + Date.now(),
+                orderId: document.getElementById('paymentOrder').value,
+                amount: parseFloat(document.getElementById('paymentAmount').value),
+                method: document.getElementById('paymentMethod').value,
+                status: document.getElementById('paymentStatus').value,
+                date: new Date().toISOString()
+            };
+
+            if (editingId) {
+                const index = app.payments.findIndex(p => p.id === editingId);
+                app.payments[index] = payment;
+                showAlert('Payment updated successfully', 'success');
+            } else {
+                app.payments.push(payment);
+                showAlert('Payment recorded successfully', 'success');
+            }
+
+            saveDataToStorage();
+            closeModal('paymentModal');
+            loadPayments();
+            refreshDashboard();
+        }
+
+        function deletePayment(id) {
+            if (confirm('Are you sure you want to delete this payment?')) {
+                app.payments = app.payments.filter(p => p.id !== id);
+                saveDataToStorage();
+                loadPayments();
+                showAlert('Payment deleted successfully', 'success');
+            }
+        }
+
+        // ==================== COUPONS ====================
+        function loadCoupons() {
+            const tbody = document.getElementById('couponsBody');
+            tbody.innerHTML = app.coupons.length > 0 ? app.coupons.map(coupon => `
+                <tr>
+                    <td><strong>${coupon.code}</strong></td>
+                    <td>${coupon.type === 'Percentage' ? coupon.value + '%' : '$' + coupon.value.toFixed(2)}</td>
+                    <td>${new Date(coupon.expiry).toLocaleDateString()}</td>
+                    <td><span class="badge ${new Date(coupon.expiry) > new Date() ? 'badge-success' : 'badge-danger'}">${new Date(coupon.expiry) > new Date() ? 'Active' : 'Expired'}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-secondary" onclick="editCoupon('${coupon.id}')">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteCoupon('${coupon.id}')">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('') : '<tr><td colspan="5" class="text-center">No coupons yet</td></tr>';
+        }
+
+        function openCouponModal() {
+            editingId = null;
+            document.getElementById('couponForm').reset();
+            openModal('couponModal');
+        }
+
+        function editCoupon(id) {
+            const coupon = app.coupons.find(c => c.id === id);
+            if (coupon) {
+                editingId = id;
+                document.getElementById('couponCode').value = coupon.code;
+                document.getElementById('couponType').value = coupon.type;
+                document.getElementById('couponValue').value = coupon.value;
+                document.getElementById('couponExpiry').value = coupon.expiry;
+                openModal('couponModal');
+            }
+        }
+
+        function saveCoupon(event) {
+            event.preventDefault();
+            const coupon = {
+                id: editingId || 'CPN' + Date.now(),
+                code: document.getElementById('couponCode').value.toUpperCase(),
+                type: document.getElementById('couponType').value,
+                value: parseFloat(document.getElementById('couponValue').value),
+                expiry: document.getElementById('couponExpiry').value
+            };
+
+            if (editingId) {
+                const index = app.coupons.findIndex(c => c.id === editingId);
+                app.coupons[index] = coupon;
+                showAlert('Coupon updated successfully', 'success');
+            } else {
+                app.coupons.push(coupon);
+                showAlert('Coupon added successfully', 'success');
+            }
+
+            saveDataToStorage();
+            closeModal('couponModal');
+            loadCoupons();
+        }
+
+        function deleteCoupon(id) {
+            if (confirm('Are you sure you want to delete this coupon?')) {
+                app.coupons = app.coupons.filter(c => c.id !== id);
+                saveDataToStorage();
+                loadCoupons();
+                showAlert('Coupon deleted successfully', 'success');
+            }
+        }
+
+        // ==================== REVIEWS ====================
+        function loadReviews() {
+            const container = document.getElementById('reviewsContainer');
+            container.innerHTML = app.reviews.length > 0 ? app.reviews.map(review => `
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <h3>${app.customers.find(c => c.id === review.customerId)?.name || 'Unknown'}</h3>
+                            <div style="margin: 10px 0;">
+                                ${'⭐'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}
+                            </div>
+                            <p>${review.comment}</p>
+                            <small style="color: #999;">${new Date(review.date).toLocaleDateString()}</small>
+                        </div>
+                        <button class="btn btn-sm btn-danger" onclick="deleteReview('${review.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('') : '<div class="card"><p class="text-center">No reviews yet</p></div>';
+        }
+
+        function deleteReview(id) {
+            if (confirm('Are you sure you want to delete this review?')) {
+                app.reviews = app.reviews.filter(r => r.id !== id);
+                saveDataToStorage();
+                loadReviews();
+                showAlert('Review deleted successfully', 'success');
+            }
+        }
+
+        // ==================== SETTINGS ====================
+        function loadSettings() {
+            document.getElementById('restaurantName').value = app.settings.restaurantName;
+            document.getElementById('taxRate').value = app.settings.taxRate;
+            document.getElementById('deliveryCharge').value = app.settings.deliveryCharge;
+            document.getElementById('currency').value = app.settings.currency;
+        }
+
+        function saveSettings(event) {
+            event.preventDefault();
+            app.settings.restaurantName = document.getElementById('restaurantName').value;
+            app.settings.taxRate = parseFloat(document.getElementById('taxRate').value);
+            app.settings.deliveryCharge = parseFloat(document.getElementById('deliveryCharge').value);
+            app.settings.currency = document.getElementById('currency').value;
+
+            saveDataToStorage();
+            showAlert('Settings saved successfully', 'success');
+        }
+
+        // ==================== MODALS ====================
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // Close modal on background click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        }
+
+        // ==================== ALERTS ====================
+        function showAlert(message, type = 'success') {
+            const container = document.getElementById('alertContainer');
+            const alertId = 'alert_' + Date.now();
+            const alert = document.createElement('div');
+            alert.id = alertId;
+            alert.className = `alert alert-${type} show`;
+            alert.textContent = message;
+            container.appendChild(alert);
+
+            setTimeout(() => {
+                alert.remove();
+            }, 4000);
+        }
+
+        // ==================== UTILITIES ====================
+        function generateId() {
+            return 'ID_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // ==================== STARTUP ====================
+        window.addEventListener('load', initializeApp);
+    </script>
+</body>
+</html>
